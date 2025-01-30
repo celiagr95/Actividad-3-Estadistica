@@ -1,0 +1,67 @@
+
+rm(list=ls())
+path <- "/Users/elisa/Documents/1Bioinformatica Master/Estadística y R para ciencias de la salud/R/Actividad 3"
+setwd(path)
+
+library(dplyr)
+library(stats)   # librería para el PCA
+library(ggplot2) # librería para hacer la representación gráfica
+library(factoextra)
+
+#Cargar datos y comprovar que no hay valores missing
+
+df <- read.csv("Dataset expresión genes.csv", row.names = 1 )
+any(is.na(df))
+
+#Etiqueta de id
+df <- df %>%
+  select(-id)
+
+#Seleccionar solo los genes
+
+df_genes <- df%>%
+  select(starts_with("AQ_"))
+
+#Comprovar que no hay genes con varianza = 0
+sumas <- colSums(df_genes)
+columnascero <- names(sumas[sumas==0]) 
+print(columnascero)
+
+
+
+#Realizar PCA
+
+pca.results <- prcomp(df_genes, scale=FALSE)
+pca.df <- data.frame(pca.results$x)
+
+
+# Varianza (cuadrado de la desviacion tipica)
+varianzas <- pca.results$sdev^2
+
+# Total de la varianza de los datos
+total.varianza <- sum(varianzas)
+
+# Varianza explicada por cada componente principal
+varianza.explicada <- varianzas/total.varianza
+
+# Calculamos la varianza acumulada 
+varianza.acumulada <- cumsum(varianza.explicada)
+
+# Tomamos el numero de componentes principales que explican el 90% de la varianza
+n.pc <- min(which(varianza.acumulada > 0.7))
+
+x_label <- paste0(paste('PC1', round(varianza.explicada[1] * 100, 2)), '%')
+y_label <- paste0(paste('PC2', round(varianza.explicada[2] * 100, 2)), '%')
+
+
+
+
+eigenvalues <- get_eigenvalue(pca.results)
+eigenvalues
+
+fviz_eig(pca.results, addlabels = TRUE, ylim =c(0,50))
+
+vaz <- get_pca_var(pca.results)
+fviz_pca_var(pca.results, col.var ="black")
+
+fviz_contrib(pca.results, choice = "var", axes = 1:2, top=10)
