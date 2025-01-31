@@ -1,5 +1,19 @@
 
-rm(list=ls())
+# Actividad 3 - Análisis de un caso práctico en R
+
+Equipo 3 Lote 10: Carlos Boillos, Celia García, Pablo González y Elisabet Roura
+
+La actividad 3 consiste en el análisis de un caso práctico en R, el dataset de trebajo, se trata de una base de datos de 65 que contiene información sobre la expresión génica de 46 genes, variables bioquímicas, síntomas, otras sociodemográficas y alguns variables de interés como tratamiento, tipo de tumor y extensión tumoral.
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+En primer lugar, se ha establecido el entorno de trabajo y se han cargado las librerías necesarias para ejecutar el código.
+
+```{r, message=FALSE, warning=FALSE}
 path <- "/Users/elisa/Documents/1Bioinformatica Master/Estadística y R para ciencias de la salud/R/Actividad 3"
 setwd(path)
 
@@ -7,61 +21,86 @@ library(dplyr)
 library(stats)   # librería para el PCA
 library(ggplot2) # librería para hacer la representación gráfica
 library(factoextra)
+library(knitr)
 
+#FALTA AÑADIR TODAS LAS LIBERIAS QUE USEIS LOS DEMAS
+
+```
+
+A continuación se ha cargado la base de datos y se ha comprobado que no hay ningún valor missing (NA).
+
+```{r}
 #Cargar datos y comprovar que no hay valores missing
 
 df <- read.csv("Dataset expresión genes.csv", row.names = 1 )
 any(is.na(df))
 
-#Etiqueta de id
 df <- df %>%
   select(-id)
 
-#Seleccionar solo los genes
+```
+Para realizar el PCA de la expresión génica hace falta crear un dataset que contenga exclusivamente las variables que reflejan la expresión de los genes. Además, se ha comprovado que la varianza de ningúna de las variables es 0.
+
+```{r}
+
 
 df_genes <- df%>%
   select(starts_with("AQ_"))
 
-#Comprovar que no hay genes con varianza = 0
+
 sumas <- colSums(df_genes)
 columnascero <- names(sumas[sumas==0]) 
 print(columnascero)
 
+```
 
+Se ha llevado acabo la reducción de dimensionalidad mediante el Análisis de Componentes principales (PCA). Es un método que permite reducir la dimensionalidad de los datos de trabajo combinando las variables que explican la mayor parte de la variabilidad, transforandolas en un nuevo conjunto de variables, estas se denominan componentes.
 
-#Realizar PCA
+```{r}
 
-pca.results <- prcomp(df_genes, scale=FALSE)
+pca.results <- prcomp(df_genes, scale= TRUE)
 pca.df <- data.frame(pca.results$x)
 
+```
 
-# Varianza (cuadrado de la desviacion tipica)
-varianzas <- pca.results$sdev^2
+Los eigenvalues o valores propios son valores que miden la varianza explicada total de los componentes princiaples del PCA, los eigenvalues se obtienen elevando al cuadrado la desviación estándar de cada componente. 
+A continuación se observa el listado de los eigenvalues para todos los componentes:
 
-# Total de la varianza de los datos
-total.varianza <- sum(varianzas)
-
-# Varianza explicada por cada componente principal
-varianza.explicada <- varianzas/total.varianza
-
-# Calculamos la varianza acumulada 
-varianza.acumulada <- cumsum(varianza.explicada)
-
-# Tomamos el numero de componentes principales que explican el 90% de la varianza
-n.pc <- min(which(varianza.acumulada > 0.7))
-
-x_label <- paste0(paste('PC1', round(varianza.explicada[1] * 100, 2)), '%')
-y_label <- paste0(paste('PC2', round(varianza.explicada[2] * 100, 2)), '%')
-
-
-
-
-eigenvalues <- get_eigenvalue(pca.results)
+```{r}
+eigenvalues <-get_eigenvalue(pca.results)
 eigenvalues
 
-fviz_eig(pca.results, addlabels = TRUE, ylim =c(0,50))
+```
+En la primera columna se observan los eigenvalues, que explican la varianza explicada por cada componente y cuanto mayor es, más información retiene ese componente principal.
+En la segunda columna se proporciona la varianta total explicada por cada componente en procentaje. Y en la tercera como se va acumulando la varianza explicada a medida que avanzamos por los componentes.
 
-vaz <- get_pca_var(pca.results)
-fviz_pca_var(pca.results, col.var ="black")
+También podemos visualizar gráficamente el porcentaje de la varianza explicada por cada componente a partir de un scree plot.
 
-fviz_contrib(pca.results, choice = "var", axes = 1:2, top=10)
+```{r}
+fviz_eig(pca.results, addlabels = TRUE, ylim =c(0,60))
+```
+Para seleccionar los PCA para seguir con la actividad se han seleccionado un número hasta cubrir almenos un 70% de la varianza de los datos.
+
+```{r}
+varianzas <- pca.results$sdev^2
+total.varianza <- sum(varianzas)
+varianza.explicada <- varianzas/total.varianza
+varianza.acumulada <- cumsum(varianza.explicada)
+n.pc <- min(which(varianza.acumulada > 0.7))
+
+print(paste("El número de componentes principales para explicar el 70% de la varianza es:" ,n.pc))
+
+```
+
+
+Los genes contribuyen de diferente manera a cada componente principal. A continuación encontramos como contribuye la expresón génica de los diferentes genes en los 5 componentes seleccionados para seguir con la actividad.
+
+```{r}
+
+var <- get_pca_var(pca.results)
+
+var_5pc <- var$coord[, 1:5]
+
+kable(var_5pc, caption = "Cargas de las Variables en los 5 Primeros Componentes")
+
+```
