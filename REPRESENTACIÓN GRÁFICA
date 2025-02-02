@@ -1,0 +1,55 @@
+# Representación gráfica del PCA
+
+## En primer lugar vamos a visualizar el gráfico de correlaciones entre variables mediante PCA.
+## Este gráfico tiene como objetivo demostrar cómo las variables se relacionan entre sí dentro del espacio de componentes principales.
+## Las variables que muestran correlaciones positivas tienden a agruparse juntas, indicando una relación directa y fuerte entre ellas.
+## Cada variable se representa con un color negro para simplificar la visualización y enfocar la atención en la dirección y agrupación de las flechas.
+
+fviz_pca_var(pca.results, col.var = "black")
+
+
+
+## Por otro lado, si queremos realizar una visualización del grado de represntación de cada variable en las componentes principales del PCA.
+## Utilizaremos un código de colores para indicar cuánto contribuye cada variable de las componentes principales:
+### -Azul: Representación baja. Las variables en este color contribuyen poco a las componentes principales y no capturan bien la variabilidad de los datos.
+### - Amarillo: Representación moderada. Indica una contribución media a las componentes principales.
+### - Rojo: Representación alta. Las variables en rojo son las que más influyen en las componentes, mostrando una fuerte relación con las componentes principales.
+
+## La opción 'repel = TRUE' evita que las etiquetas de las variables se superpongan, permitiendo una visualización más clara y ordenada.
+
+fviz_pca_var(pca.results, col.var = "cos2",
+             gradient.cols = c ("blue", "yellow", "red"),
+             repel = TRUE)
+
+
+
+## Dado el alto número de genes involucrados, los gráficos pueden volverse complejos y difíciles de interpretar.
+## En ejemplos anteriores, hemos identificado específicamente cada gen.
+## Sin embargo, para obtener una visión más global que permita apreciar la disposición general y las tendencias de los datos sin detalles específicos:
+
+fviz_pca_var(pca.results, col.var = "cos2", 
+             geom.var = "arrow", 
+             labelsize = 2, 
+             repel = FALSE)
+### Este gráfico elimina las etiquetas de los genes para proporcionar una vista despejada y clara de cómo se orientan y cuál es la fuerza relativa de cada variable en el espacio de componentes principales.
+### Es ideal para visualizar tendencias generales y patrones sin centrarse en genes individuales, facilitando una comprensión rápida y general del análisis.
+
+
+
+##Por último:
+##Si queremos una visualización integrada de la calidad de representación de las variables en las dos primeras dimensiones, podemos realizar:
+### Este gráfico muestra cuán efectivamente cada variable está representada en las primeras dos componentes principales:
+fviz_cos2(pca.results, choice = "var", axes = 1:2)
+### Los valores altos indican una representación excelente, significando que esos genes contribuyen significativamente a las componentes. 
+### En contraste, valores bajos sugieren que algunas variables no están tan bien representadas, proporcionando menos información sobre la dirección de máxima variabilidad en los datos.
+
+## Para profundizar en cómo cada variable contribuye individualmente a cada una de las primeras dos dimensiones del PCA, realizamos lo siguiente:
+## Visualización de la contribución de cada variable a la primera dimensión:
+fviz_contrib(pca.results, choice = "var", axes = 1)
+#### Este gráfico destaca las variables que más influyen en la primera dimensión, ayudando a identificar los genes que definen principalmente esta componente.
+## Seguido por una visualización similar para la segunda dimensión:
+fviz_contrib(pca.results, choice = "var", axes = 2)
+#### Similar al anterior, pero para la segunda dimensión, este gráfico identifica qué variables son determinantes para la orientación y variabilidad capturada por la segunda componente principal.
+
+## Estas visualizaciones son cruciales para entender las dinámicas multidimensionales de los datos, permitiendo identificar qué variables son más relevantes en cada dimensión del análisis PCA.
+
